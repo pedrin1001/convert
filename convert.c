@@ -3,6 +3,7 @@
 #include <opencv2/imgproc/imgproc_c.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "convert.h"
 
 struct thread_data thread_data_array[NUM_THREADS];
@@ -13,14 +14,15 @@ void *ConvertImages(void *threadarg)
     //Gets thread arguments
     struct thread_data *this_thread;
     this_thread = (struct thread_data *) threadarg;
-    if(!(this_thread->original = cvLoadImage(this_thread->original_adress, 0)))
+    if(!(this_thread->original = cvLoadImage(this_thread->original_address, 0)))
     {
-        printf("Error loading file named %s\n", this_thread->original_adress);
+        printf("Error loading file named %s\n", this_thread->original_address);
         pthread_exit(NULL);
     }
     char file_name[40];
     //create file name
-    sprintf(file_name, "thumbnail_%d_resize_%d.jpg", this_thread->number, this_thread->resize_number);
+    sprintf(file_name, "thumbnail_%d_resize_%d.jpg",
+            this_thread->number, this_thread->resize_number);
     //resize image using linear interpolation (opencv default)
     cvResize (this_thread->original, this_thread->destination, CV_INTER_LINEAR);
     if(! (cvSaveImage (file_name, this_thread->destination, 0)))
@@ -28,14 +30,12 @@ void *ConvertImages(void *threadarg)
         printf("Error saving file %s", file_name);
     }
     cvReleaseImage(&(this_thread->original));
-    //cvReleaseImage(&(this_thread->destination));
-    //printf("saved thumbnail #%i%i\n", this_thread->id, this_thread->number);
     pthread_exit(NULL);
 }
 
 int convert (char *input_folder, char *output_folder, int width, int height, int call)
 {
-    int i, k, first_calls = TRUE;
+    int i, first_calls = TRUE;
     pthread_t threads[NUM_THREADS];
     int rc;
     long t;
@@ -54,6 +54,12 @@ int convert (char *input_folder, char *output_folder, int width, int height, int
     IplImage **thread_destination_images;
     //one for each thread
     thread_destination_images = (IplImage**) malloc(NUM_THREADS * sizeof (IplImage*));
+    //changes directory to output
+    if (chdir (output_folder) == -1)
+    {
+        printf ("error opening output folder");
+        return 0;
+    }
     if ((dir = opendir (input_folder)) != NULL)
     {
         i=0;
@@ -103,7 +109,7 @@ int convert (char *input_folder, char *output_folder, int width, int height, int
             thread_data_array[i].destination = thread_destination_images[i];
             thread_data_array[i].number = THUMBNAIL_NUMBER;
             thread_data_array[i].resize_number = call;
-            thread_data_array[i].original_adress = file_address;
+            thread_data_array[i].original_address = file_address;
             rc = pthread_create(&threads[i], &attr, ConvertImages, (void *) &thread_data_array[i]);
             if (rc)
             {

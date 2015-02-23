@@ -1,13 +1,13 @@
 #include <opencv2/imgproc/imgproc_c.h>
 #define TRUE 1
 #define FALSE 0
-#define NUM_THREADS 1
+#define NUM_THREADS 4
 
 //Thread's Arguments
 struct thread_data
 {
     int number, resize_number;
-    char *original_adress;
+    char *original_address;
     IplImage *original, *destination;
 };
 
