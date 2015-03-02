@@ -14,7 +14,7 @@ void *ConvertImages(void *threadarg)
     //Gets thread arguments
     struct thread_data *this_thread;
     this_thread = (struct thread_data *) threadarg;
-    if(!(this_thread->original = cvLoadImage(this_thread->original_address, 0)))
+    if(!(this_thread->original = cvLoadImage(this_thread->original_address, CV_LOAD_IMAGE_COLOR)))
     {
         printf("Error loading file named %s\n", this_thread->original_address);
         pthread_exit(NULL);
@@ -91,7 +91,7 @@ int convert (char *input_folder, char *output_folder, int width, int height, int
             if(first_calls)
             {
                 //reads first image to get depth and channels
-                if(!(sample_image = cvLoadImage(file_address, 0)))
+                if(!(sample_image = cvLoadImage(file_address, CV_LOAD_IMAGE_COLOR)))
                 {
                     printf("Error loading file named %s\n", file_address);
                     return 0;
