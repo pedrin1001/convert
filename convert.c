@@ -103,6 +103,7 @@ int convert (char *input_folder, char *output_folder, int width, int height, int
                 thread_destination_images[i] = cvCreateImage
                                                ( cvSize(width , height),
                                                  sample_image->depth, sample_image->nChannels );
+                cvReleaseImage(&sample_image);
 
             }
             //set thread arguments
